@@ -74,7 +74,7 @@ Cr::Containers::Array<OpType> generateOps(std::size_t& pushCount, std::size_t& p
         max = std::max(max, pushCount - popCount);
     }
 
-    Mg::Debug{} << "Peak element count" << max;
+    Cr::Utility::Debug{} << "Peak element count" << max;
     return ops;
 }
 

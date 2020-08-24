@@ -2,14 +2,12 @@
 #define CIRCULARBUFFER_H
 
 #include <Corrade/Containers/GrowableArray.h>
-#include <Magnum/Types.h>
 
-namespace Mg = Magnum;
 namespace Cr = Corrade;
 
 namespace {
 
-Mg::UnsignedInt nextPow2(Mg::UnsignedInt v) {
+std::uint32_t nextPow2(std::uint32_t v) {
     v--;
     v |= v >> 1u;
     v |= v >> 2u;
@@ -26,10 +24,10 @@ template<class T>
 class CircularBuffer {
 public:
 
-    enum class RelocationOption : Mg::UnsignedShort {
-        LeftBound,
-        RightBound,
-        Center
+    enum class RelocationOption : std::uint8_t {
+        LeftBound = 1,
+        RightBound = 2,
+        Center = 3
     };
 
     explicit CircularBuffer(std::size_t size) : m_data{Cr::Containers::DefaultInit, nextPow2(size)} {
@@ -76,7 +74,7 @@ public:
         if(size != m_data.size()) {
             Cr::Containers::Array<T> data{Corrade::Containers::DefaultInit, size};
 
-            for(Mg::UnsignedInt i = 0; i < m_size; ++i)
+            for(std::uint32_t i = 0; i < m_size; ++i)
                 data[i] = std::move(m_data[(m_begin + i) & m_mask]);
 
             m_data = data;
@@ -96,13 +94,13 @@ public:
     void grow(RelocationOption option = RelocationOption::Center){
         Cr::Containers::Array<T> data(Cr::Containers::DefaultInit, nextPow2(m_size + 1));
 
-        Mg::UnsignedInt offset;
+        std::uint32_t offset;
         switch(option){
             case RelocationOption::LeftBound : offset = 0; break;
             case RelocationOption::Center : offset = data.size()/2 - m_size/2; break;
             case RelocationOption::RightBound : offset = data.size() - m_size; break;
         }
-        for(Mg::UnsignedInt i = 0; i < m_size; ++i)
+        for(std::uint32_t i = 0; i < m_size; ++i)
             data[i + offset] = m_data[(m_begin + i) & m_mask];
 
         m_data = std::move(data);
@@ -111,15 +109,15 @@ public:
         m_mask = m_data.size() - 1;
     }
 
-    [[nodiscard]] Mg::UnsignedInt size() const {
+    [[nodiscard]] std::uint32_t size() const {
         return m_size;
     }
 
 private:
-    Mg::UnsignedInt m_begin = 0, m_end = 0, m_size = 0;
+    std::uint32_t m_begin = 0, m_end = 0, m_size = 0;
     Cr::Containers::Array<T> m_data;
 
-    Mg::UnsignedInt m_mask = 0;
+    std::uint32_t m_mask = 0;
 };
 
 #endif
